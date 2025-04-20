@@ -1,0 +1,40 @@
+services:
+  - type: web
+    name: enhancer-web
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "./start_web.sh"
+    envVars:
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: enhancer-redis
+      - key: AWS_ACCESS_KEY_ID
+        value: your_key
+      - key: AWS_SECRET_ACCESS_KEY
+        value: your_secret
+      - key: S3_BUCKET
+        value: your_bucket
+      - key: REPLICATE_API_TOKEN
+        value: your_token
+  - type: worker
+    name: enhancer-worker
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "./start_worker.sh"
+    envVars:
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: enhancer-redis
+      - key: AWS_ACCESS_KEY_ID
+        value: your_key
+      - key: AWS_SECRET_ACCESS_KEY
+        value: your_secret
+      - key: S3_BUCKET
+        value: your_bucket
+      - key: REPLICATE_API_TOKEN
+        value: your_token
+databases:
+  - name: enhancer-redis
+    type: redis
