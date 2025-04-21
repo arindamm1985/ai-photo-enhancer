@@ -1,13 +1,12 @@
-
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from app.s3_client import upload_file
-from app.tasks import enhance_photo_task
+from app.s3_client import upload_file, get_s3_url
 from app.gpu_client import enhance_image_with_replicate
-import os
+import os, time, requests
 
 app = Flask(__name__)
 CORS(app)
+
 @app.route('/upload', methods=['POST'])
 def upload():
     if 'photo' not in request.files:
@@ -48,9 +47,3 @@ def upload():
         "status": "success",
         "enhanced_url": get_s3_url(enhanced_key)
     })
-
-@app.route('/status/<task_id>')
-def status(task_id):
-    from celery.result import AsyncResult
-    result = AsyncResult(task_id)
-    return jsonify({"status": result.status, "result": result.result if result.status == 'SUCCESS' else None})
