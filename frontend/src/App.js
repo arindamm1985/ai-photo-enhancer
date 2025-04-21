@@ -5,7 +5,7 @@ import { useDropzone } from 'react-dropzone';
 function App() {
   const [taskId, setTaskId] = useState(null);
   const [imageURL, setImageURL] = useState(null);
-
+  const API_BASE = process.env.REACT_APP_API_BASE;
   const { getRootProps, getInputProps } = useDropzone({
     accept: { 'image/*': [] },
     onDrop: async (files) => {
@@ -13,11 +13,11 @@ function App() {
       formData.append("photo", files[0]);
       formData.append("model", "real-esrgan");
 
-      const res = await axios.post('/upload', formData);
+      const res = await axios.post(`${API_BASE}/upload`, formData);
       setTaskId(res.data.task_id);
 
       const poll = setInterval(async () => {
-        const statusRes = await axios.get(`/status/${res.data.task_id}`);
+        const statusRes = await axios.get(`${API_BASE}/status/${res.data.task_id}`);
         if (statusRes.data.status === 'SUCCESS') {
           clearInterval(poll);
           setImageURL(statusRes.data.result);
