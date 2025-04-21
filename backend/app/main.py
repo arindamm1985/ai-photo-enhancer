@@ -1,11 +1,12 @@
 
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from app.s3_client import upload_file
 from app.tasks import enhance_photo_task
 import os
 
 app = Flask(__name__)
-
+CORS(app)
 @app.route('/upload', methods=['POST'])
 def upload():
     image = request.files['photo']
