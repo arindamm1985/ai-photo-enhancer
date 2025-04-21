@@ -3,38 +3,55 @@ import axios from 'axios';
 import { useDropzone } from 'react-dropzone';
 
 function App() {
-  const [taskId, setTaskId] = useState(null);
   const [imageURL, setImageURL] = useState(null);
-  const API_BASE = process.env.REACT_APP_API_BASE;
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5000";
+
   const { getRootProps, getInputProps } = useDropzone({
     accept: { 'image/*': [] },
     onDrop: async (files) => {
-      const formData = new FormData();
-      formData.append("photo", files[0]);
-      formData.append("model", "real-esrgan");
+      setLoading(true);
+      setErrorMsg("");
+      setImageURL(null);
 
-      const res = await axios.post(`${API_BASE}/upload`, formData);
-      setTaskId(res.data.task_id);
+      try {
+        const formData = new FormData();
+        formData.append("photo", files[0]);
+        formData.append("model", "real-esrgan");
 
-      const poll = setInterval(async () => {
-        const statusRes = await axios.get(`${API_BASE}/status/${res.data.task_id}`);
-        if (statusRes.data.status === 'SUCCESS') {
-          clearInterval(poll);
-          setImageURL(statusRes.data.result);
+        const res = await axios.post(`${API_BASE}/upload`, formData);
+        if (res.data.enhanced_url) {
+          setImageURL(res.data.enhanced_url);
+        } else {
+          setErrorMsg("Failed to enhance image.");
         }
-      }, 3000);
+      } catch (err) {
+        console.error(err);
+        setErrorMsg("Upload failed or server error.");
+      } finally {
+        setLoading(false);
+      }
     }
   });
 
   return (
-    <div className="App" style={{ padding: 20 }}>
+    <div className="App" style={{ padding: 20, maxWidth: 600, margin: 'auto' }}>
       <h1>AI Photo Enhancer</h1>
-      <div {...getRootProps()} style={{ border: '2px dashed #ccc', padding: 40 }}>
+      <div {...getRootProps()} style={{ border: '2px dashed #ccc', padding: 40, textAlign: 'center' }}>
         <input {...getInputProps()} />
-        <p>Drag & drop a photo here or click to select</p>
+        <p>Drag & drop a photo here, or click to select</p>
       </div>
-      {taskId && <p>Task ID: {taskId} (Processing...)</p>}
-      {imageURL && <img src={imageURL} alt="enhanced" style={{ maxWidth: '100%' }} />}
+
+      {loading && <p>⏳ Enhancing your image… please wait.</p>}
+      {errorMsg && <p style={{ color: 'red' }}>{errorMsg}</p>}
+      {imageURL && (
+        <div style={{ marginTop: 20 }}>
+          <h3>Enhanced Image:</h3>
+          <img src={imageURL} alt="Enhanced" style={{ maxWidth: '100%' }} />
+          <p><a href={imageURL} target="_blank" rel="noreferrer">Download Image</a></p>
+        </div>
+      )}
     </div>
   );
 }
