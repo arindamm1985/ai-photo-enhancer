@@ -8,7 +8,7 @@ import requests
 from smtplib import SMTP
 from email.mime.text import MIMEText
 
-broker_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+broker_url = "redis://red-d02u45qdbo4c73c3o7n0:6379"
 celery = Celery('photo_ai', broker=broker_url, backend=broker_url)
 
 @celery.task
